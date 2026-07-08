@@ -326,6 +326,10 @@ function scrollLogToBottom() {
 
 /* ---------- API ---------- */
 function _apiBase() {
+  const host = location.hostname;
+  if (host === "localhost" || host === "127.0.0.1" || /^10\./.test(host) || /^192\.168\./.test(host) || /^172\./.test(host)) {
+    return "";
+  }
   return (window.APP_CONFIG && window.APP_CONFIG.API_BASE) || "";
 }
 function _authHeaders(extra) {
