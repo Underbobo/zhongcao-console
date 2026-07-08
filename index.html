@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>种草日报控制台</title>
+    <script>
+      // 在首屏绘制前确定主题，避免深色用户刷新时闪一下浅色
+      (function () {
+        try {
+          var t = localStorage.getItem("zc_theme");
+          if (t !== "dark" && t !== "light") {
+            t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+          }
+          document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="stylesheet" href="styles.css?v=3" />
+    <script src="config.js?v=3"></script>
+    <style>
+      .login-mask{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(15,18,28,.6);backdrop-filter:blur(4px)}
+      .login-mask[hidden]{display:none}
+      .login-card{background:var(--card,#fff);color:var(--text,#1f2430);padding:28px 26px;border-radius:14px;width:300px;max-width:90vw;box-shadow:0 18px 50px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:12px}
+      .login-card h2{margin:0;font-size:18px}
+      .login-card p{margin:0;font-size:13px;opacity:.7}
+      .login-card input{padding:10px 12px;border:1px solid rgba(128,128,128,.4);border-radius:9px;font-size:14px;background:transparent;color:inherit}
+      .login-card button{padding:10px;border:0;border-radius:9px;background:#3b6cff;color:#fff;font-size:14px;cursor:pointer}
+      .login-card button:hover{background:#2f5bdd}
+      .login-err{color:#e5484d;font-size:12px;min-height:14px}
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <!-- ===== 侧边栏 ===== -->
+      <aside class="sidebar">
+        <div class="side-brand">
+          <div class="logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 17l5-5 4 4 7-8" />
+              <path d="M16 8h4v4" />
+            </svg>
+          </div>
+          <div class="side-brand-text">
+            <p class="eyebrow">Douyin Seeding Ops</p>
+            <h1>种草日报控制台</h1>
+          </div>
+        </div>
+
+        <nav class="side-nav" id="sideNav">
+          <button class="nav-item" data-view="delivery">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+            <span>交付看板</span>
+          </button>
+          <button class="nav-item" data-view="overview">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+            <span>运行概况</span>
+          </button>
+          <button class="nav-item" data-view="actions">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+            <span>采集动作</span>
+          </button>
+          <button class="nav-item" data-view="jobs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+            <span>任务中心</span>
+            <span class="nav-badge hidden" id="navRunning">0</span>
+          </button>
+          <button class="nav-item" data-view="sessions">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 18v3M16 18v3"/></svg>
+            <span>登录状态</span>
+          </button>
+          <button class="nav-item" data-view="guide">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span>操作指南</span>
+          </button>
+        </nav>
+
+        <div class="side-foot">
+          <button id="cmdkBtn" class="cmdk-trigger" title="快速运行 (Ctrl/⌘ + K)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <span>快速运行</span>
+            <kbd>Ctrl K</kbd>
+          </button>
+          <span id="statusPill" class="status-pill">
+            <span class="status-dot"></span>
+            <span id="statusText">检测中…</span>
+          </span>
+        </div>
+      </aside>
+
+      <!-- ===== 主区 ===== -->
+      <div class="main">
+        <header class="topbar">
+          <div class="crumb">
+            <h2 id="viewTitle">运行概况</h2>
+            <p id="viewSub">本机服务与任务总览</p>
+          </div>
+          <div class="top-actions">
+            <button id="themeBtn" class="icon-btn theme-btn" title="切换深色 / 浅色" aria-label="切换深色 / 浅色">
+              <span id="themeIcon" aria-hidden="true"></span>
+            </button>
+            <button id="notifyBtn" class="icon-btn" title="开启完成通知">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              <span id="notifyText">开启通知</span>
+            </button>
+            <button id="refreshBtn" class="icon-btn" title="刷新状态">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+              刷新
+            </button>
+            <button id="clearHistoryBtn" class="icon-btn" title="清空已结束的历史任务与日志（保留运行中/排队中）">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+              清空历史
+            </button>
+          </div>
+        </header>
+
+        <main class="content">
+          <!-- 交付看板（客户向） -->
+          <section class="view hidden" data-view="delivery">
+            <section class="panel delivery-hero">
+              <div class="delivery-hero-text">
+                <p class="eyebrow">本期交付 · Douyin Seeding Report</p>
+                <h2>抖音种草日报</h2>
+                <p class="delivery-sub">巨量云图、巨量星图、巨量千川三大平台的种草数据已自动采集并汇总进交付主表，可随时查看最新结果。</p>
+                <div class="delivery-cta">
+                  <a id="deliveryOpen" class="primary delivery-open is-disabled" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7"/><path d="M21 3l-9 9"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>
+                    打开交付主表
+                  </a>
+                  <span id="deliveryStatus" class="delivery-status">读取中…</span>
+                </div>
+              </div>
+              <div class="delivery-hero-badge" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="section-head">
+                <div><h2>三条采集线进度</h2><p>每条线最近一次成功采集的时间。</p></div>
+                <span class="head-tag" id="deliveryStepTag">—</span>
+              </div>
+              <div id="deliveryLines" class="delivery-lines"></div>
+            </section>
+
+            <section class="panel">
+              <div class="section-head"><div><h2>最近更新</h2><p>最近完成的几次采集。</p></div></div>
+              <div id="deliveryFeed" class="delivery-feed"></div>
+            </section>
+          </section>
+
+          <!-- 运行概况 -->
+          <section class="view" data-view="overview">
+            <p id="healthLine" class="health-strip">正在读取本机服务状态...</p>
+            <div id="metrics" class="metrics"></div>
+
+            <div class="notice">
+              <svg class="notice-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+              <div>
+                <strong>运行时段建议</strong>
+                <p>每小时 50 分至次时段 20 分为本机场控数据采集时段，建议错峰运行、尽量避免在此期间启动任务；如遇紧急需求亦可执行，两套脚本基本互不冲突。</p>
+              </div>
+            </div>
+
+            <section class="panel">
+              <div class="section-head">
+                <div>
+                  <h2>整体流程</h2>
+                  <p>种草日报从「客户源表」到「对外交付」的完整链路。第一次用建议先看「操作指南」。</p>
+                </div>
+                <span class="head-tag">4 步走</span>
+              </div>
+
+              <div class="flow">
+                <div class="flow-step">
+                  <span class="flow-no">0</span>
+                  <div class="flow-body">
+                    <h4>同步客户源表 → 总表</h4>
+                    <p>点「<b>同步客户源表到总表</b>」，把客户填好的两张源表整表灌进我们的总表（主表「种草 DY日报」+「内容服务日报数据-细分表」），尽量保留公式与链接。</p>
+                  </div>
+                </div>
+
+                <div class="flow-arrow" aria-hidden="true">▼</div>
+
+                <div class="flow-step">
+                  <span class="flow-no">1</span>
+                  <div class="flow-body">
+                    <h4>跑三条采集线<span class="flow-hint">（可同时跑，互不影响）</span></h4>
+                    <div class="flow-lanes">
+                      <div class="lane lane-yt">
+                        <strong>云图线</strong>
+                        <span>建结案报告 → 等后台算 → 采集指标</span>
+                        <em>→ 写「云图报告取数」</em>
+                      </div>
+                      <div class="lane lane-xt">
+                        <strong>星图线</strong>
+                        <span>按主表达人采集传播+搜索数据</span>
+                        <em>→ 写「巨量星图自然」</em>
+                      </div>
+                      <div class="lane lane-qc">
+                        <strong>千川线</strong>
+                        <span>采预定单 →「巨量营销内服投放」</span>
+                        <em>→ 同步到「细分表」</em>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flow-arrow" aria-hidden="true">▼</div>
+
+                <div class="flow-step">
+                  <span class="flow-no">2</span>
+                  <div class="flow-body">
+                    <h4>写回主表数据</h4>
+                    <p>点「<b>写回主表数据</b>」，把三条线写进数据表的结果按「<b>达人昵称</b>」回填到主表「种草 DY日报」的取数列；主表其余指标由表里已搭好的公式自动汇总。</p>
+                  </div>
+                </div>
+
+                <div class="flow-arrow" aria-hidden="true">▼</div>
+
+                <div class="flow-step is-final">
+                  <span class="flow-no">✓</span>
+                  <div class="flow-body">
+                    <h4>对外交付</h4>
+                    <p>主表「种草 DY日报」就是最终结果，可直接给客户看。</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="section-head">
+                <div>
+                  <h2>登录状态速览</h2>
+                  <p>采集脚本依赖这些登录态，缺失或过旧请先重新登录。</p>
+                </div>
+              </div>
+              <div id="sessionsMini" class="session-list"></div>
+            </section>
+          </section>
+
+          <!-- 采集动作 -->
+          <section class="view hidden" data-view="actions">
+            <section class="panel">
+              <div class="section-head">
+                <div>
+                  <h2>采集动作</h2>
+                  <p>点击后会在后台排队运行，同一时间只跑一个任务。按 Ctrl/⌘ + K 可快速运行。</p>
+                </div>
+              </div>
+              <div id="actionScopeTabs" class="scope-tabs" aria-label="采集动作筛选">
+                <button type="button" class="scope-tab active" data-action-scope="all">全部</button>
+                <button type="button" class="scope-tab" data-action-scope="daily">日常</button>
+                <button type="button" class="scope-tab" data-action-scope="weekly">周度</button>
+                <button type="button" class="scope-tab" data-action-scope="monthly">月度</button>
+              </div>
+              <div id="actions" class="action-grid"></div>
+            </section>
+          </section>
+
+          <!-- 任务中心 -->
+          <section class="view hidden" data-view="jobs">
+            <section class="panel jobs">
+              <div class="section-head">
+                <div>
+                  <h2>任务中心</h2>
+                  <p>失败时先看日志尾部，登录、验证码、队列满都会显示在这里。</p>
+                </div>
+              </div>
+              <div class="jobs-shell">
+                <div id="jobs" class="job-list"></div>
+                <article class="log-pane">
+                  <div class="log-head">
+                    <div class="log-head-left">
+                      <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                      <h3 id="logTitle">选择一个任务查看日志</h3>
+                      <span id="logLive" class="live-tag hidden"><span class="live-dot"></span>实时</span>
+                    </div>
+                    <div class="log-actions">
+                      <button id="logSearchBtn" class="ghost icon-only" title="搜索日志">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                      </button>
+                      <button id="logCopyBtn" class="ghost icon-only" title="复制日志">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                      </button>
+                      <button id="logDownloadBtn" class="ghost icon-only" title="下载完整日志">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                      </button>
+                      <button id="retryBtn" class="ghost hidden">重跑</button>
+                      <button id="cancelBtn" class="danger hidden">取消</button>
+                    </div>
+                  </div>
+                  <div class="log-search hidden" id="logSearchBar">
+                    <input id="logSearchInput" type="text" placeholder="在日志中查找…" />
+                    <span id="logSearchCount" class="log-search-count">0</span>
+                  </div>
+                  <pre id="logBox">暂无日志</pre>
+                  <button id="logToBottom" class="log-to-bottom hidden" title="回到底部">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m0 0l-6-6m6 6l6-6"/></svg>
+                    回到底部
+                  </button>
+                </article>
+              </div>
+            </section>
+          </section>
+
+          <!-- 登录状态 -->
+          <section class="view hidden" data-view="sessions">
+            <section class="panel">
+              <div class="section-head">
+                <div>
+                  <h2>登录状态文件</h2>
+                  <p>这里检查的是本地登录态文件是否存在，不等于平台一定未过期。</p>
+                </div>
+              </div>
+              <div id="sessions" class="session-list"></div>
+            </section>
+          </section>
+
+          <!-- 操作指南 -->
+          <section class="view hidden" data-view="guide">
+            <section class="panel guide-hero">
+              <div class="guide-hero-text">
+                <p class="eyebrow">操作指南 · 给第一次用的同事</p>
+                <h2>5 分钟看懂：种草日报是怎么跑出来的</h2>
+                <p>这套工具帮你把<strong>巨量云图、巨量星图、巨量千川</strong>三个平台的种草数据采集下来，自动汇总成一张可以交付的「种草日报」。<b>你不需要懂代码</b>——全程只在这个页面点按钮、看结果。</p>
+              </div>
+              <ul class="guide-hero-points">
+                <li><span>①</span> 在「采集动作」点按钮 → 任务在后台自动跑</li>
+                <li><span>②</span> 在「任务中心」看进度和日志，绿色就是成功</li>
+                <li><span>③</span> 数据自动写进飞书表，主表就是最终交付</li>
+              </ul>
+            </section>
+
+            <section class="panel">
+              <div class="section-head"><div><h2>日常怎么操作（照着做）</h2><p>每次出日报，大致就这几步。不确定就先勾「只预览不写入」。</p></div></div>
+              <ol class="guide-steps">
+                <li>
+                  <h4>第 0 步 · 同步客户源表</h4>
+                  <p>去「采集动作」点 <b>同步客户源表到总表</b>。两个链接一般已经填好，直接「加入队列」即可，它会把客户填的数据灌进我们的总表。<i>不确定时先勾「只预览不写入」看一眼。</i></p>
+                </li>
+                <li>
+                  <h4>第 1 步 · 跑三条采集线</h4>
+                  <p>三条线<b>互不影响、可以一个接一个点</b>：<br>· <b>千川</b>：先「千川采集预定单」→ 再「确认写入细分表」。<br>· <b>星图</b>：点「星图达人自然数据」，它会自动按主表达人去采。<br>· <b>云图</b>：「云图建结案报告」（内服另点「云图建内服报告」）→ 等后台算完（人工去云图看一眼）→「云图采集全部数据」→ 需要人群再「云图搭建 A3 人群」。</p>
+                </li>
+                <li>
+                  <h4>第 2 步 · 写回主表数据</h4>
+                  <p>三条线都跑完后，点 <b>写回主表数据</b>，把数据表的结果按达人回填进主表「种草 DY日报」的取数列；主表其余指标是表里公式自动算的，不用管。<i>不确定先勾「只预览不写入」。</i></p>
+                </li>
+                <li>
+                  <h4>第 3 步 · 检查并交付</h4>
+                  <p>打开飞书主表「种草 DY日报」，看一眼指标都出来了、没有明显空缺，确认无误后就是最终结果，可直接交付客户。</p>
+                </li>
+              </ol>
+            </section>
+
+            <section class="panel">
+              <div class="section-head"><div><h2>AI 助手怎么用</h2><p>右下角「AI 助手」接的是本机 Ollama，不走网上大模型。</p></div></div>
+              <div class="guide-status">
+                <div class="gs gs-run"><span class="badge run"><span class="pulse-dot"></span>查进度</span><p>可以问「现在什么进度」「有没有排队」「最近失败的是哪个」。它会读取当前任务队列和最近任务状态。</p></div>
+                <div class="gs gs-ok"><span class="badge ok">问操作</span><p>可以问「周报怎么跑」「写回主表会不会覆盖」「千川先点哪个」。它会按本系统的动作说明回答。</p></div>
+                <div class="gs gs-bad"><span class="badge wait">跑任务</span><p>可以说「帮我跑星图 6/21」「云图采集到 6/21」。AI 只会打开确认框并预填参数，真正入队仍要你点击确认。</p></div>
+              </div>
+              <p class="guide-tip">提示：网页助手默认会尽量短回答，不需要手动输入 <code>no_think</code>。问「你是什么模型」时，它会显示当前连接的本机 Ollama 模型。</p>
+            </section>
+
+            <section class="panel">
+              <div class="section-head"><div><h2>怎么知道跑成功了？</h2><p>所有任务都在「任务中心」里。</p></div></div>
+              <div class="guide-status">
+                <div class="gs gs-ok"><span class="badge ok">成功</span><p>绿色对勾＝跑完了，数据已写进飞书表。</p></div>
+                <div class="gs gs-run"><span class="badge run"><span class="pulse-dot"></span>运行</span><p>正在后台跑，点开能看实时日志。同一时间只跑一个。</p></div>
+                <div class="gs gs-bad"><span class="badge bad">失败</span><p>红色＝出错了。点开任务看<b>日志最后几行</b>，多半是要重新登录、验证码、或云图计算队列满了。</p></div>
+              </div>
+              <p class="guide-tip">💡 想跑完后有提醒？点右上角「开启通知」，完成会响铃＋桌面通知。按 <kbd>Ctrl</kbd>+<kbd>K</kbd> 可快速搜索动作直接运行。</p>
+            </section>
+
+            <section class="panel">
+              <div class="section-head"><div><h2>遇到问题怎么办</h2><p>最常见的几种情况。</p></div></div>
+              <div class="guide-faq">
+                <details><summary>弹出浏览器要我登录 / 出现验证码、滑块</summary><p>登录态过期了。<b>在弹出的浏览器里手动登录或过一下验证码</b>，脚本会自动继续并记住登录态，下次就不用再登。看「登录状态」页可以检查哪个平台的登录文件还在。</p></details>
+                <details><summary>云图报告提交失败 / 变成草稿</summary><p>云图后台同时最多算约 7 个报告，满了会自动存草稿。<b>等队列空一些</b>，去云图把草稿打开「下一步→开始计算」补提即可。</p></details>
+                <details><summary>云图搭 A3 / 采集说「未找到报告」</summary><p>脚本会按<b>达人名 + 结束日期</b>去模糊匹配报告。还是找不到，多半是云图里<b>还没建好</b>该达人对应日期的结案报告、或报告<b>还在计算中</b>。先确认「云图建结案报告」跑过且已算完，再重试。</p></details>
+                <details><summary>千川写进去的数据对不上</summary><p>千川把「预定单」按<b>达人 + 定向包 + 分日</b>匹配写进细分表。对不上多半是达人昵称写法或定向包对不上，核对下飞书表里的写法（尤其带括号后缀的）。</p></details>
+                <details><summary>写回主表后有的指标是空的</summary><p>主表只取「已经采到」的数据。先确认对应的采集线（云图/星图/千川）都跑成功了，再重跑一次「写回主表数据」。还是空的，多半是那个达人在数据表里没采到。</p></details>
+                <details><summary>任务一直「运行中」不动</summary><p>点开看日志最后一行卡在哪。如果是等登录/验证码，去浏览器处理；实在卡死可以「取消」后重跑。</p></details>
+                <details><summary>换了飞书工作簿（表）</summary><p>这是技术同事的事：改 config.json 的表链接，并确保新表里有「巨量星图自然」「巨量营销内服投放」两张中间表（跑一次 scripts/_provision_new_sheets.py 自动补建）。</p></details>
+              </div>
+            </section>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- ===== 运行参数对话框 ===== -->
+    <dialog id="runDialog">
+      <form method="dialog" id="runForm">
+        <div class="dialog-head">
+          <div>
+            <p class="eyebrow" id="dialogCategory">任务</p>
+            <h2 id="dialogTitle">运行任务</h2>
+          </div>
+          <button type="button" id="closeRunDialog" value="cancel" class="icon-btn">关闭</button>
+        </div>
+        <p id="dialogDesc" class="dialog-desc"></p>
+        <div id="dialogDanger" class="warning hidden"></div>
+        <div id="fields" class="fields"></div>
+        <div class="dialog-actions">
+          <button type="button" id="cancelRunDialog" value="cancel" class="ghost">取消</button>
+          <button type="submit" id="submitRun" value="default" class="primary">加入队列</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- ===== ⌘K 命令面板 ===== -->
+    <div id="cmdk" class="cmdk hidden">
+      <div class="cmdk-box">
+        <div class="cmdk-input-row">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="cmdkInput" type="text" placeholder="搜索采集动作，回车运行…" autocomplete="off" />
+          <kbd>Esc</kbd>
+        </div>
+        <div id="cmdkList" class="cmdk-list"></div>
+      </div>
+    </div>
+
+    <button id="aiToggle" class="ai-toggle" type="button" title="打开 AI 助手">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.7 4.8L18.5 9l-4.8 1.7L12 15.5l-1.7-4.8L5.5 9l4.8-1.2L12 3z"/><path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14z"/><path d="M5 14l.8 2.2L8 17l-2.2.8L5 20l-.8-2.2L2 17l2.2-.8L5 14z"/></svg>
+      AI 助手
+    </button>
+
+    <section id="aiPanel" class="ai-panel hidden" aria-label="AI 助手">
+      <div class="ai-head">
+        <div>
+          <p class="eyebrow">Local Ollama</p>
+          <h2>AI 运行助理</h2>
+        </div>
+        <button id="aiClose" class="icon-btn" type="button">关闭</button>
+      </div>
+      <div id="aiMessages" class="ai-messages"></div>
+      <form id="aiForm" class="ai-form">
+        <input id="aiInput" type="text" placeholder="问状态、诊断日志，或说：帮我跑星图 6/21" autocomplete="off" />
+        <button id="aiSend" class="primary" type="submit">发送</button>
+      </form>
+    </section>
+
+    <div id="toasts" class="toast-wrap" aria-live="polite"></div>
+
+    <div id="loginMask" class="login-mask" hidden>
+      <form id="loginForm" class="login-card" autocomplete="off">
+        <h2>种草日报控制台</h2>
+        <p>请输入访问密码</p>
+        <input id="loginPwd" type="password" autocomplete="off" placeholder="密码" />
+        <button type="submit">登录</button>
+        <div id="loginErr" class="login-err"></div>
+      </form>
+    </div>
+    <script src="app.js?v=3"></script>
+  </body>
+</html>
