@@ -3,5 +3,5 @@
 // 部署到 GitHub Pages 等独立站点：把 API_BASE 改成你后端的公网地址（隧道地址），
 //   例如： "https://zhongcao.example.com"   注意末尾不要带斜杠 "/"。
 window.APP_CONFIG = {
-  API_BASE: "",
+  API_BASE: "https://claims-stats-basic-electricity.trycloudflare.com",
 };
