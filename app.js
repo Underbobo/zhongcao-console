@@ -12,9 +12,13 @@ const state = {
   jobStatus: {},
   notify: false,
   actionScope: "all",
+  actionQuery: "",
+  jobFilter: "all",
+  jobQuery: "",
   cmdkList: [],
   cmdkIdx: 0,
   aiBusy: false,
+  aiModels: [],
   logSearch: { term: "", hits: 0, idx: 0 },
   sheetUrl: "",
 };
@@ -96,6 +100,39 @@ const ACTION_CATEGORY_LABELS = {
   "Final - 同步": "Final - 同步",
 };
 
+const ACTION_CATEGORY_META = {
+  同步: {
+    label: "First · 数据准备",
+    description: "先将客户源表同步到日报总表",
+    cls: "sync",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h11l-3-3m3 3l-3 3"/><path d="M17 17H6l3 3m-3-3l3-3"/></svg>',
+  },
+  千川: {
+    label: "巨量千川",
+    description: "采集预定单并同步投放数据",
+    cls: "qianchuan",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg>',
+  },
+  星图: {
+    label: "巨量星图",
+    description: "采集达人传播与自然搜索数据",
+    cls: "xingtu",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3z"/></svg>',
+  },
+  云图: {
+    label: "巨量云图",
+    description: "创建报告、采集指标与搭建人群",
+    cls: "yuntu",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 1 1 1-7.9A5.5 5.5 0 0 1 18.5 12H19a3 3 0 0 1 0 6H7z"/></svg>',
+  },
+  "Final - 同步": {
+    label: "Final · 汇总交付",
+    description: "将采集结果写回日报主表",
+    cls: "final",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/><circle cx="12" cy="12" r="9"/></svg>',
+  },
+};
+
 const ACTION_SCOPE_LABELS = {
   all: "全部",
   daily: "日常",
@@ -151,6 +188,30 @@ function actionScope(action) {
 function scopedActions(actions = state.actions) {
   if (state.actionScope === "all") return actions;
   return actions.filter((action) => actionScope(action) === state.actionScope);
+}
+
+function actionCategoryMeta(category) {
+  return ACTION_CATEGORY_META[category] || {
+    label: ACTION_CATEGORY_LABELS[category] || category,
+    description: "其他采集与处理动作",
+    cls: "other",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>',
+  };
+}
+
+function renderActionStats() {
+  const counts = { all: state.actions.length, daily: 0, weekly: 0, monthly: 0 };
+  state.actions.forEach((action) => { counts[actionScope(action)] += 1; });
+  const ids = {
+    all: "actionTotalCount",
+    daily: "actionDailyCount",
+    weekly: "actionWeeklyCount",
+    monthly: "actionMonthlyCount",
+  };
+  Object.entries(ids).forEach(([key, id]) => {
+    const el = $(id);
+    if (el) el.textContent = counts[key];
+  });
 }
 
 function escapeRegExp(s) {
@@ -272,7 +333,7 @@ function renderLogInto(box, text, term) {
   const re = escTerm ? new RegExp(escapeRegExp(escTerm), "gi") : null;
   let html;
   if (!text) {
-    html = '<span class="ln-dim">暂无日志</span>';
+    html = '<span class="log-empty-state"><b>›_</b><strong>暂无运行日志</strong><small>任务刚创建时可能需要等待几秒；如果还未选择任务，请从左侧列表中选择。</small></span>';
   } else {
     html = text
       .split("\n")
@@ -388,8 +449,8 @@ function sessionsHTML(sessions) {
   return sessions
     .map((s) => {
       const badge = s.exists
-        ? `<span class="badge ok">存在</span>`
-        : `<span class="badge bad">缺失</span>`;
+        ? `<span class="badge ok">文件就绪</span>`
+        : `<span class="badge bad">未检测到</span>`;
       return `<article class="session">
         <strong>${esc(s.name)}${badge}</strong>
         <p>${esc(s.kind)} · ${bytes(s.size)}</p>
@@ -402,9 +463,13 @@ function sessionsHTML(sessions) {
 async function loadHealth() {
   const data = await api("/api/health");
   const cfg = data.config;
-  $("healthLine").textContent = `${data.time} · 脚本目录 ${cfg.workflow_exists ? "已找到" : "未找到"} · Python ${cfg.python_exists ? "已找到" : "未找到"}`;
-
   const ready = cfg.workflow_exists && cfg.python_exists;
+  const missing = [!cfg.workflow_exists && "脚本目录", !cfg.python_exists && "Python"].filter(Boolean);
+  const health = $("healthLine");
+  if (health) {
+    health.innerHTML = `<span class="status-dot"></span>${ready ? "运行环境正常" : `${missing.join("、")}未找到`} · ${esc(data.time)}`;
+    health.classList.toggle("is-bad", !ready);
+  }
   const pill = $("statusPill");
   if (pill) {
     pill.classList.toggle("is-bad", !ready);
@@ -501,7 +566,12 @@ async function loadJobs(selectLatest = false) {
 
 function renderActions() {
   const groups = new Map();
-  const actionsToShow = scopedActions(orderedActions());
+  renderActionStats();
+  const scoped = scopedActions(orderedActions());
+  const term = state.actionQuery.trim().toLowerCase();
+  const actionsToShow = term
+    ? scoped.filter((action) => `${action.title} ${action.category} ${action.description}`.toLowerCase().includes(term))
+    : scoped;
   for (const action of actionsToShow) {
     if (!groups.has(action.category)) groups.set(action.category, []);
     groups.get(action.category).push(action);
@@ -512,31 +582,53 @@ function renderActions() {
     tab.classList.toggle("active", tab.dataset.actionScope === state.actionScope);
   });
 
+  const resultCount = $("actionResultCount");
+  if (resultCount) {
+    const scopeLabel = ACTION_SCOPE_LABELS[state.actionScope] || "全部";
+    resultCount.textContent = `${scopeLabel} · 找到 ${actionsToShow.length} 个动作`;
+  }
+  const clearSearch = $("clearActionSearch");
+  if (clearSearch) clearSearch.classList.toggle("hidden", !term);
+
   if (!actionsToShow.length) {
-    $("actions").innerHTML = `<div class="job-meta" style="padding: 12px 2px;">${esc(ACTION_SCOPE_LABELS[state.actionScope] || "")}暂无动作</div>`;
+    $("actions").innerHTML = `<div class="action-empty">
+      <span>⌕</span><strong>没有找到匹配的动作</strong>
+      <p>换一个关键词，或切换到其他周期查看。</p>
+    </div>`;
     return;
   }
 
   $("actions").innerHTML = [...groups.entries()]
-    .map(([category, actions]) => `<section class="action-group">
+    .map(([category, actions]) => {
+      const meta = actionCategoryMeta(category);
+      return `<section class="action-group action-group-${meta.cls}">
       <div class="action-group-head">
-        <h3>${esc(ACTION_CATEGORY_LABELS[category] || category)}</h3>
+        <div class="action-group-title">
+          <span class="action-group-icon">${meta.icon}</span>
+          <span><h3>${esc(meta.label)}</h3><small>${esc(meta.description)}</small></span>
+        </div>
         <span>${actions.length} 个动作</span>
       </div>
       <div class="action-group-grid">
         ${actions
           .map(
-            (action) => `<article class="action-card${action.danger ? " is-danger" : ""}">
-              <div class="category">${action.danger ? "⚠ " : ""}${esc(action.category)}</div>
+            (action) => `<article class="action-card action-card-${meta.cls}">
+              <div class="action-card-top">
+                <div class="category">${esc(ACTION_SCOPE_LABELS[actionScope(action)])}</div>
+                <span class="action-id">${esc(action.id)}</span>
+              </div>
               <h3>${esc(action.title)}</h3>
               <p>${esc(action.description)}</p>
-              ${action.danger ? `<div class="warning">${esc(action.danger)}</div>` : ""}
-              <button class="primary" data-run="${esc(action.id)}">运行</button>
+              <div class="action-card-foot">
+                <span>${(action.fields || []).length ? `需确认 ${(action.fields || []).length} 项参数` : "无需额外参数"}</span>
+                <button class="primary" data-run="${esc(action.id)}">配置并运行 <i>→</i></button>
+              </div>
             </article>`
           )
           .join("")}
       </div>
-    </section>`)
+    </section>`;
+    })
     .join("");
 
   document.querySelectorAll("[data-run]").forEach((btn) => {
@@ -556,28 +648,92 @@ function refreshRelTimes() {
   });
 }
 
+function jobDuration(job) {
+  const startRaw = job.started_at || job.created_at;
+  const endRaw = job.finished_at || (job.status === "running" ? new Date().toISOString() : "");
+  if (!startRaw || !endRaw) return "";
+  const start = Date.parse(String(startRaw).replace(" ", "T"));
+  const end = Date.parse(String(endRaw).replace(" ", "T"));
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return "";
+  const seconds = Math.max(0, Math.round((end - start) / 1000));
+  if (seconds < 60) return `${seconds} 秒`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} 分 ${seconds % 60} 秒`;
+  return `${Math.floor(seconds / 3600)} 小时 ${Math.floor((seconds % 3600) / 60)} 分`;
+}
+
+function renderJobStats() {
+  const counts = { active: 0, queued: 0, succeeded: 0, failed: 0 };
+  state.jobs.forEach((job) => {
+    if (job.status === "running") counts.active += 1;
+    if (job.status === "queued") counts.queued += 1;
+    if (job.status === "succeeded") counts.succeeded += 1;
+    if (job.status === "failed") counts.failed += 1;
+  });
+  const values = {
+    jobsActiveCount: counts.active,
+    jobsQueuedCount: counts.queued,
+    jobsSuccessCount: counts.succeeded,
+    jobsFailedCount: counts.failed,
+  };
+  Object.entries(values).forEach(([id, value]) => {
+    const el = $(id);
+    if (el) el.textContent = value;
+  });
+}
+
+function filteredJobs() {
+  const term = state.jobQuery.trim().toLowerCase();
+  return state.jobs.filter((job) => {
+    const matchesStatus = state.jobFilter === "all"
+      || (state.jobFilter === "active" && ["queued", "running"].includes(job.status))
+      || job.status === state.jobFilter;
+    if (!matchesStatus) return false;
+    if (!term) return true;
+    return `${job.id} ${job.title} ${job.category} ${job.action_id || ""}`.toLowerCase().includes(term);
+  });
+}
+
 function markActiveJob() {
   document.querySelectorAll(".job").forEach((el) => {
-    el.classList.toggle("active", Number(el.dataset.job) === state.selectedJobId);
+    const active = Number(el.dataset.job) === state.selectedJobId;
+    el.classList.toggle("active", active);
+    el.setAttribute("aria-pressed", String(active));
   });
 }
 
 function renderJobs() {
+  renderJobStats();
+  document.querySelectorAll("[data-job-filter]").forEach((tab) => {
+    tab.classList.toggle("active", tab.dataset.jobFilter === state.jobFilter);
+  });
+  const jobsToShow = filteredJobs();
+  const resultCount = $("jobResultCount");
+  if (resultCount) resultCount.textContent = `找到 ${jobsToShow.length} 条任务`;
+  const clearSearch = $("clearJobSearch");
+  if (clearSearch) clearSearch.classList.toggle("hidden", !state.jobQuery.trim());
+
   if (!state.jobs.length) {
-    $("jobs").innerHTML = `<div class="job-meta" style="padding: 16px;">还没有任务，先从“采集动作”里选择一个动作。</div>`;
+    $("jobs").innerHTML = `<div class="job-empty"><span>＋</span><strong>还没有任务</strong><p>从“采集动作”选择一个动作开始运行。</p></div>`;
     state.jobsSig = "";
     return;
   }
 
-  const sig = state.jobs.map((j) => `${j.id}:${j.status}`).join("|");
+  if (!jobsToShow.length) {
+    $("jobs").innerHTML = `<div class="job-empty"><span>⌕</span><strong>没有匹配的任务</strong><p>调整状态筛选或换一个关键词。</p></div>`;
+    state.jobsSig = `empty|${state.jobFilter}|${state.jobQuery}`;
+    return;
+  }
+
+  const sig = `${state.jobFilter}|${state.jobQuery}|${jobsToShow.map((j) => `${j.id}:${j.status}`).join("|")}`;
   if (sig !== state.jobsSig) {
     state.jobsSig = sig;
-    $("jobs").innerHTML = state.jobs
+    $("jobs").innerHTML = jobsToShow
       .map(
-        (job) => `<button class="job" data-job="${job.id}">
-          <div>
-            <div class="job-title">#${job.id} ${esc(job.title)}</div>
-            <div class="job-meta">${esc(job.category)} · <span class="job-time" data-ts="${esc(job.created_at)}" title="${esc(job.created_at)}">${relTime(job.created_at)}</span></div>
+        (job) => `<button class="job job-status-${esc(job.status)}" data-job="${job.id}" aria-pressed="${job.id === state.selectedJobId ? "true" : "false"}">
+          <span class="job-status-mark">${ICONS[job.status] || ICONS.queued}</span>
+          <div class="job-main">
+            <div class="job-title"><span>#${job.id}</span>${esc(job.title)}</div>
+            <div class="job-meta">${esc(job.category)} · <span class="job-time" data-ts="${esc(job.created_at)}" title="${esc(job.created_at)}">${relTime(job.created_at)}</span>${jobDuration(job) ? ` · 用时 ${esc(jobDuration(job))}` : ""}</div>
           </div>
           ${badgeHTML(job.status)}
         </button>`
@@ -721,7 +877,14 @@ async function loadJob(id, fromClick = true) {
   const data = await api(`/api/jobs/${id}`);
   const job = data.job;
   state.selectedJobId = job.id;
-  $("logTitle").textContent = `#${job.id} ${job.title} · ${statusLabel(job.status)[0]}`;
+  $("logTitle").textContent = `#${job.id} ${job.title}`;
+  const logMeta = $("logMeta");
+  if (logMeta) {
+    const parts = [job.category, statusLabel(job.status)[0], job.created_at];
+    const duration = jobDuration(job);
+    if (duration) parts.push(`用时 ${duration}`);
+    logMeta.textContent = parts.filter(Boolean).join(" · ");
+  }
   $("logLive").classList.toggle("hidden", job.status !== "running");
 
   const box = $("logBox");
@@ -920,6 +1083,7 @@ async function clearHistory() {
   state.lastLogId = null;
   state.lastLogText = null;
   $("logTitle").textContent = "选择一个任务查看日志";
+  if ($("logMeta")) $("logMeta").textContent = "任务状态、执行时间和日志会显示在这里";
   $("logLive").classList.add("hidden");
   $("retryBtn").classList.add("hidden");
   $("cancelBtn").classList.add("hidden");
@@ -993,16 +1157,22 @@ function onLogSearchKey(e) {
 /* ---------- 视图路由 ---------- */
 function setView(view) {
   if (!VIEW_META[view]) view = "overview";
+  const changed = state.view !== view;
   state.view = view;
   document.querySelectorAll(".view").forEach((v) => {
     v.classList.toggle("hidden", v.dataset.view !== view);
   });
   document.querySelectorAll(".nav-item").forEach((n) => {
-    n.classList.toggle("active", n.dataset.view === view);
+    const isActive = n.dataset.view === view;
+    n.classList.toggle("active", isActive);
+    if (isActive) n.setAttribute("aria-current", "page");
+    else n.removeAttribute("aria-current");
   });
   const [t, s] = VIEW_META[view];
   $("viewTitle").textContent = t;
   $("viewSub").textContent = s;
+  const crumb = $("viewCrumb");
+  if (crumb) crumb.textContent = t;
   try {
     localStorage.setItem("zc_view", view);
   } catch (e) {
@@ -1012,6 +1182,7 @@ function setView(view) {
   if (view === "jobs" && state.selectedJobId) {
     loadJob(state.selectedJobId, false).catch(() => {});
   }
+  if (changed) window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 /* ---------- ⌘K 命令面板 ---------- */
@@ -1147,8 +1318,9 @@ function openAiPanel() {
   if (!panel) return;
   panel.classList.remove("hidden");
   if (!$("aiMessages").children.length) {
-    appendAiMessage("我在。可以问我当前进度、诊断选中任务日志，也可以直接说“帮我跑星图 6/21”。");
+    appendAiMessage("嗨，我是日报小助手 🤖\n可以帮你查任务进度、解释操作步骤、分析失败日志，也可以说“帮我跑星图 6/21”。");
   }
+  loadAiModels();
   setTimeout(() => $("aiInput").focus(), 20);
 }
 
@@ -1157,12 +1329,35 @@ function closeAiPanel() {
   if (panel) panel.classList.add("hidden");
 }
 
+async function loadAiModels() {
+  const select = $("aiModel");
+  if (!select || state.aiModels.length) return;
+  try {
+    const data = await api("/api/ai/models");
+    state.aiModels = data.models || [];
+    if (!state.aiModels.length) throw new Error("未找到 GLM4 或 Qwen 3.5 本地模型");
+    select.innerHTML = state.aiModels.map((model) => {
+      const label = model.startsWith("glm4") ? "GLM-4 9B" : "Qwen 3.5 9B";
+      return `<option value="${esc(model)}">${label}</option>`;
+    }).join("");
+    select.value = state.aiModels.includes(data.default_model) ? data.default_model : state.aiModels[0];
+  } catch (err) {
+    select.innerHTML = "<option value=\"\">模型不可用</option>";
+    appendAiMessage(`无法读取本机模型：${err.message}`, "assistant");
+  }
+}
+
 async function submitAi(event) {
   event.preventDefault();
   if (state.aiBusy) return;
   const input = $("aiInput");
   const message = (input.value || "").trim();
   if (!message) return;
+  const model = $("aiModel")?.value || "";
+  if (!model) {
+    toast("请先等待本机模型加载完成", "err");
+    return;
+  }
   input.value = "";
   appendAiMessage(message, "user");
   const pending = appendAiMessage("正在问本地模型…", "assistant");
@@ -1170,7 +1365,7 @@ async function submitAi(event) {
   try {
     const data = await api("/api/ai/chat", {
       method: "POST",
-      body: JSON.stringify({ message, job_id: state.selectedJobId || null }),
+      body: JSON.stringify({ message, model, job_id: state.selectedJobId || null }),
     });
     if (pending) pending.remove();
     appendAiMessage(data.answer || "AI 没有返回内容。", "assistant", data.kind === "action" ? data : null);
@@ -1296,6 +1491,14 @@ function bindEvents() {
     n.addEventListener("click", () => setView(n.dataset.view));
   });
 
+  // 页面内快捷入口
+  document.querySelectorAll("[data-jump-view]").forEach((n) => {
+    n.addEventListener("click", () => setView(n.dataset.jumpView));
+  });
+  document.querySelectorAll("[data-open-command]").forEach((n) => {
+    n.addEventListener("click", openCmdk);
+  });
+
   document.querySelectorAll("[data-action-scope]").forEach((tab) => {
     tab.addEventListener("click", () => {
       state.actionScope = tab.dataset.actionScope || "all";
@@ -1307,6 +1510,78 @@ function bindEvents() {
       renderActions();
     });
   });
+
+  const actionSearch = $("actionSearchInput");
+  if (actionSearch) {
+    actionSearch.addEventListener("input", () => {
+      state.actionQuery = actionSearch.value || "";
+      renderActions();
+    });
+    actionSearch.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && actionSearch.value) {
+        actionSearch.value = "";
+        state.actionQuery = "";
+        renderActions();
+      }
+    });
+  }
+  const clearActionSearch = $("clearActionSearch");
+  if (clearActionSearch) {
+    clearActionSearch.addEventListener("click", () => {
+      if (actionSearch) actionSearch.value = "";
+      state.actionQuery = "";
+      renderActions();
+      if (actionSearch) actionSearch.focus();
+    });
+  }
+
+  document.querySelectorAll("[data-job-filter]").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      state.jobFilter = tab.dataset.jobFilter || "all";
+      state.jobsSig = "";
+      renderJobs();
+    });
+  });
+  const jobSearch = $("jobSearchInput");
+  if (jobSearch) {
+    jobSearch.addEventListener("input", () => {
+      state.jobQuery = jobSearch.value || "";
+      state.jobsSig = "";
+      renderJobs();
+    });
+    jobSearch.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && jobSearch.value) {
+        jobSearch.value = "";
+        state.jobQuery = "";
+        state.jobsSig = "";
+        renderJobs();
+      }
+    });
+  }
+  const clearJobSearch = $("clearJobSearch");
+  if (clearJobSearch) {
+    clearJobSearch.addEventListener("click", () => {
+      if (jobSearch) jobSearch.value = "";
+      state.jobQuery = "";
+      state.jobsSig = "";
+      renderJobs();
+      if (jobSearch) jobSearch.focus();
+    });
+  }
+  const jobsRefreshBtn = $("jobsRefreshBtn");
+  if (jobsRefreshBtn) {
+    jobsRefreshBtn.addEventListener("click", async () => {
+      jobsRefreshBtn.classList.add("is-loading");
+      try {
+        await loadJobs(false);
+        toast("任务列表已刷新", "ok");
+      } catch (err) {
+        toast(`刷新失败：${err.message}`, "err");
+      } finally {
+        jobsRefreshBtn.classList.remove("is-loading");
+      }
+    });
+  }
 
   // 日志工具
   $("logCopyBtn").addEventListener("click", copyLog);
@@ -1374,6 +1649,13 @@ async function boot() {
   let saved = "overview";
   try {
     saved = localStorage.getItem("zc_view") || "overview";
+  } catch (e) {
+    /* ignore */
+  }
+  // 支持通过 ?view=actions 等链接直达指定页面，便于收藏常用工作区。
+  try {
+    const requestedView = new URLSearchParams(window.location.search).get("view");
+    if (requestedView && VIEW_META[requestedView]) saved = requestedView;
   } catch (e) {
     /* ignore */
   }

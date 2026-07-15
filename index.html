@@ -18,8 +18,8 @@
         } catch (e) {}
       })();
     </script>
-    <link rel="stylesheet" href="styles.css?v=3" />
-    <script src="config.js?v=3"></script>
+    <link rel="stylesheet" href="styles.css?v=7" />
+    <script src="config.js?v=7"></script>
     <style>
       .login-mask{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(15,18,28,.6);backdrop-filter:blur(4px)}
       .login-mask[hidden]{display:none}
@@ -44,37 +44,49 @@
             </svg>
           </div>
           <div class="side-brand-text">
-            <p class="eyebrow">Douyin Seeding Ops</p>
+            <p class="eyebrow">运营自动化平台</p>
             <h1>种草日报控制台</h1>
           </div>
         </div>
 
-        <nav class="side-nav" id="sideNav">
-          <button class="nav-item" data-view="delivery">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
-            <span>交付看板</span>
-          </button>
-          <button class="nav-item" data-view="overview">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
-            <span>运行概况</span>
-          </button>
-          <button class="nav-item" data-view="actions">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>
-            <span>采集动作</span>
-          </button>
-          <button class="nav-item" data-view="jobs">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
-            <span>任务中心</span>
-            <span class="nav-badge hidden" id="navRunning">0</span>
-          </button>
-          <button class="nav-item" data-view="sessions">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 18v3M16 18v3"/></svg>
-            <span>登录状态</span>
-          </button>
-          <button class="nav-item" data-view="guide">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            <span>操作指南</span>
-          </button>
+        <nav class="side-nav" id="sideNav" aria-label="主导航">
+          <div class="nav-group">
+            <p class="nav-group-label">工作台</p>
+            <button class="nav-item" data-view="overview">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+              <span>运行概况</span>
+            </button>
+          </div>
+          <div class="nav-group">
+            <p class="nav-group-label">日报运营</p>
+            <button class="nav-item" data-view="actions">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+              <span>采集动作</span>
+            </button>
+            <button class="nav-item" data-view="jobs">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+              <span>任务中心</span>
+              <span class="nav-badge hidden" id="navRunning">0</span>
+            </button>
+          </div>
+          <div class="nav-group">
+            <p class="nav-group-label">成果交付</p>
+            <button class="nav-item" data-view="delivery">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+              <span>交付看板</span>
+            </button>
+          </div>
+          <div class="nav-group nav-group-secondary">
+            <p class="nav-group-label">系统与支持</p>
+            <button class="nav-item" data-view="sessions">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 18v3M16 18v3"/></svg>
+              <span>登录状态</span>
+            </button>
+            <button class="nav-item" data-view="guide">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              <span>操作指南</span>
+            </button>
+          </div>
         </nav>
 
         <div class="side-foot">
@@ -94,6 +106,7 @@
       <div class="main">
         <header class="topbar">
           <div class="crumb">
+            <p class="breadcrumb"><span>种草日报</span><i>/</i><strong id="viewCrumb">运行概况</strong></p>
             <h2 id="viewTitle">运行概况</h2>
             <p id="viewSub">本机服务与任务总览</p>
           </div>
@@ -109,10 +122,18 @@
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
               刷新
             </button>
-            <button id="clearHistoryBtn" class="icon-btn" title="清空已结束的历史任务与日志（保留运行中/排队中）">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-              清空历史
-            </button>
+            <details class="top-more">
+              <summary class="icon-btn" title="更多操作" aria-label="更多操作">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></svg>
+              </summary>
+              <div class="top-more-menu">
+                <p>系统操作</p>
+                <button id="clearHistoryBtn" class="menu-danger" title="清空已结束的历史任务与日志（保留运行中/排队中）">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                  清空历史任务
+                </button>
+              </div>
+            </details>
           </div>
         </header>
 
@@ -153,16 +174,39 @@
 
           <!-- 运行概况 -->
           <section class="view" data-view="overview">
-            <p id="healthLine" class="health-strip">正在读取本机服务状态...</p>
-            <div id="metrics" class="metrics"></div>
-
-            <div class="notice">
-              <svg class="notice-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
-              <div>
-                <strong>运行时段建议</strong>
-                <p>每小时 50 分至次时段 20 分为本机场控数据采集时段，建议错峰运行、尽量避免在此期间启动任务；如遇紧急需求亦可执行，两套脚本基本互不冲突。</p>
+            <section class="panel overview-hero">
+              <div class="overview-hero-copy">
+                <p class="eyebrow">TODAY'S WORKSPACE</p>
+                <h2>种草日报运营工作台</h2>
+                <p>从这里开始采集、跟进任务进度，并检查最终交付结果。</p>
+                <p id="healthLine" class="overview-health"><span class="status-dot"></span>正在读取服务状态…</p>
               </div>
-            </div>
+              <div class="overview-quick" aria-label="常用操作">
+                <button class="quick-card quick-primary" type="button" data-jump-view="actions">
+                  <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg></span>
+                  <span><strong>开始采集</strong><small>选择并运行采集动作</small></span>
+                  <i>→</i>
+                </button>
+                <button class="quick-card" type="button" data-jump-view="jobs">
+                  <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+                  <span><strong>任务中心</strong><small>查看进度与运行日志</small></span>
+                  <i>→</i>
+                </button>
+                <button class="quick-card" type="button" data-jump-view="delivery">
+                  <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg></span>
+                  <span><strong>交付看板</strong><small>检查三条采集线成果</small></span>
+                  <i>→</i>
+                </button>
+              </div>
+            </section>
+
+            <section class="overview-metrics-block" aria-labelledby="metricsTitle">
+              <div class="mini-section-head">
+                <div><h2 id="metricsTitle">任务状态</h2><p>当前队列与历史任务概览</p></div>
+                <button type="button" class="text-link" data-jump-view="jobs">查看全部任务 →</button>
+              </div>
+              <div id="metrics" class="metrics"></div>
+            </section>
 
             <section class="panel">
               <div class="section-head">
@@ -236,6 +280,7 @@
                   <h2>登录状态速览</h2>
                   <p>采集脚本依赖这些登录态，缺失或过旧请先重新登录。</p>
                 </div>
+                <button type="button" class="text-link" data-jump-view="sessions">管理登录状态 →</button>
               </div>
               <div id="sessionsMini" class="session-list"></div>
             </section>
@@ -243,39 +288,118 @@
 
           <!-- 采集动作 -->
           <section class="view hidden" data-view="actions">
-            <section class="panel">
-              <div class="section-head">
-                <div>
-                  <h2>采集动作</h2>
-                  <p>点击后会在后台排队运行，同一时间只跑一个任务。按 Ctrl/⌘ + K 可快速运行。</p>
+            <section class="panel action-hero">
+              <div class="action-hero-copy">
+                <p class="eyebrow">ACTION LIBRARY</p>
+                <h2>选择一个采集动作开始工作</h2>
+                <p>所有动作都会进入后台队列。运行前先确认日期和写入方式，不确定时优先使用预览模式。</p>
+                <div class="action-hero-buttons">
+                  <button type="button" class="primary" data-open-command>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                    快速搜索动作
+                  </button>
+                  <button type="button" class="ghost" data-jump-view="jobs">查看任务队列</button>
                 </div>
               </div>
-              <div id="actionScopeTabs" class="scope-tabs" aria-label="采集动作筛选">
-                <button type="button" class="scope-tab active" data-action-scope="all">全部</button>
-                <button type="button" class="scope-tab" data-action-scope="daily">日常</button>
-                <button type="button" class="scope-tab" data-action-scope="weekly">周度</button>
-                <button type="button" class="scope-tab" data-action-scope="monthly">月度</button>
+              <div class="action-stats" aria-label="动作数量统计">
+                <div><strong id="actionTotalCount">0</strong><span>全部动作</span></div>
+                <div><strong id="actionDailyCount">0</strong><span>日常</span></div>
+                <div><strong id="actionWeeklyCount">0</strong><span>周度</span></div>
+                <div><strong id="actionMonthlyCount">0</strong><span>月度</span></div>
               </div>
+            </section>
+
+            <section class="action-flow-guide" aria-label="推荐执行流程">
+              <div class="action-flow-label"><span>推荐流程</span><strong>日常日报</strong></div>
+              <div class="action-flow-item"><i>01</i><span><strong>同步源表</strong><small>准备客户基础数据</small></span></div>
+              <b>→</b>
+              <div class="action-flow-item"><i>02</i><span><strong>运行采集线</strong><small>云图、星图、千川</small></span></div>
+              <b>→</b>
+              <div class="action-flow-item"><i>03</i><span><strong>写回主表</strong><small>汇总并检查交付</small></span></div>
+            </section>
+
+            <section class="panel action-catalog">
+              <div class="section-head">
+                <div>
+                  <h2>动作目录</h2>
+                  <p>按周期或关键词筛选，动作已根据执行顺序分组。</p>
+                </div>
+              </div>
+              <div class="action-toolbar">
+                <div id="actionScopeTabs" class="scope-tabs" aria-label="采集动作周期筛选">
+                  <button type="button" class="scope-tab active" data-action-scope="all">全部</button>
+                  <button type="button" class="scope-tab" data-action-scope="daily">日常</button>
+                  <button type="button" class="scope-tab" data-action-scope="weekly">周度</button>
+                  <button type="button" class="scope-tab" data-action-scope="monthly">月度</button>
+                </div>
+                <label class="action-search" for="actionSearchInput">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                  <input id="actionSearchInput" type="search" placeholder="搜索动作、平台或用途…" autocomplete="off" />
+                  <button id="clearActionSearch" class="action-search-clear hidden" type="button" aria-label="清除搜索">×</button>
+                </label>
+              </div>
+              <div class="action-result-line"><span id="actionResultCount">正在读取动作…</span><small>点击“配置并运行”后仍会再次确认</small></div>
               <div id="actions" class="action-grid"></div>
             </section>
           </section>
 
           <!-- 任务中心 -->
           <section class="view hidden" data-view="jobs">
+            <section class="panel jobs-hero">
+              <div class="jobs-hero-copy">
+                <p class="eyebrow">TASK MONITOR</p>
+                <h2>任务运行监控台</h2>
+                <p>集中查看排队、运行和失败任务。选择左侧任务后，可在右侧实时跟踪日志并执行重跑或取消。</p>
+                <div class="jobs-hero-actions">
+                  <button type="button" class="primary" data-jump-view="actions">＋ 新建任务</button>
+                  <button type="button" class="ghost" id="jobsRefreshBtn">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+                    刷新任务
+                  </button>
+                </div>
+              </div>
+              <div class="jobs-stats" aria-label="最近任务状态统计">
+                <div class="jobs-stat stat-active"><span class="jobs-stat-icon">▶</span><strong id="jobsActiveCount">0</strong><small>进行中</small></div>
+                <div class="jobs-stat stat-queued"><span class="jobs-stat-icon">◷</span><strong id="jobsQueuedCount">0</strong><small>排队中</small></div>
+                <div class="jobs-stat stat-success"><span class="jobs-stat-icon">✓</span><strong id="jobsSuccessCount">0</strong><small>已成功</small></div>
+                <div class="jobs-stat stat-failed"><span class="jobs-stat-icon">!</span><strong id="jobsFailedCount">0</strong><small>失败</small></div>
+              </div>
+            </section>
+
             <section class="panel jobs">
               <div class="section-head">
                 <div>
-                  <h2>任务中心</h2>
-                  <p>失败时先看日志尾部，登录、验证码、队列满都会显示在这里。</p>
+                  <h2>任务明细</h2>
+                  <p>优先处理失败任务；日志尾部通常会直接说明登录、验证码或队列问题。</p>
                 </div>
               </div>
+              <div class="jobs-toolbar">
+                <div class="job-filter-tabs" aria-label="任务状态筛选">
+                  <button type="button" class="job-filter active" data-job-filter="all">全部</button>
+                  <button type="button" class="job-filter" data-job-filter="active">进行中</button>
+                  <button type="button" class="job-filter" data-job-filter="succeeded">成功</button>
+                  <button type="button" class="job-filter" data-job-filter="failed">失败</button>
+                </div>
+                <label class="job-search" for="jobSearchInput">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                  <input id="jobSearchInput" type="search" placeholder="搜索任务名称、平台或编号…" autocomplete="off" />
+                  <button id="clearJobSearch" class="job-search-clear hidden" type="button" aria-label="清除任务搜索">×</button>
+                </label>
+              </div>
+              <div class="jobs-result-line"><span id="jobResultCount">正在读取任务…</span><small>列表最多显示最近 80 条任务</small></div>
               <div class="jobs-shell">
-                <div id="jobs" class="job-list"></div>
+                <aside class="job-browser">
+                  <div class="job-browser-head"><strong>任务列表</strong><span>选择任务查看详情</span></div>
+                  <div id="jobs" class="job-list"></div>
+                </aside>
                 <article class="log-pane">
                   <div class="log-head">
                     <div class="log-head-left">
                       <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-                      <h3 id="logTitle">选择一个任务查看日志</h3>
+                      <div class="log-title-stack">
+                        <h3 id="logTitle">选择一个任务查看日志</h3>
+                        <p id="logMeta">任务状态、执行时间和日志会显示在这里</p>
+                      </div>
                       <span id="logLive" class="live-tag hidden"><span class="live-dot"></span>实时</span>
                     </div>
                     <div class="log-actions">
@@ -296,7 +420,7 @@
                     <input id="logSearchInput" type="text" placeholder="在日志中查找…" />
                     <span id="logSearchCount" class="log-search-count">0</span>
                   </div>
-                  <pre id="logBox">暂无日志</pre>
+                  <pre id="logBox"><span class="log-empty-state"><b>›_</b><strong>等待选择任务</strong><small>从左侧任务列表选择一项，即可查看完整运行日志。</small></span></pre>
                   <button id="logToBottom" class="log-to-bottom hidden" title="回到底部">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m0 0l-6-6m6 6l6-6"/></svg>
                     回到底部
@@ -308,6 +432,10 @@
 
           <!-- 登录状态 -->
           <section class="view hidden" data-view="sessions">
+            <section class="panel sessions-hero">
+              <div class="sessions-hero-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+              <div><p class="eyebrow">SESSION HEALTH</p><h2>平台登录环境</h2><p>采集依赖本机浏览器登录态。文件存在不代表账号一定有效，遇到验证码时请在弹出的浏览器中处理。</p></div>
+            </section>
             <section class="panel">
               <div class="section-head">
                 <div>
@@ -323,50 +451,65 @@
           <section class="view hidden" data-view="guide">
             <section class="panel guide-hero">
               <div class="guide-hero-text">
-                <p class="eyebrow">操作指南 · 给第一次用的同事</p>
-                <h2>5 分钟看懂：种草日报是怎么跑出来的</h2>
-                <p>这套工具帮你把<strong>巨量云图、巨量星图、巨量千川</strong>三个平台的种草数据采集下来，自动汇总成一张可以交付的「种草日报」。<b>你不需要懂代码</b>——全程只在这个页面点按钮、看结果。</p>
+                <p class="eyebrow">QUICK START · 新手上手</p>
+                <h2>从数据采集到日报交付，一条流程走完</h2>
+                <p>按照下面四步操作，即可完成巨量云图、星图和千川数据采集。系统会在后台执行，随时可以切到任务中心查看进度。</p>
+                <div class="guide-hero-actions">
+                  <button class="primary" type="button" data-jump-view="actions">开始一次采集</button>
+                  <button class="ghost" type="button" data-jump-view="jobs">查看任务进度</button>
+                </div>
               </div>
               <ul class="guide-hero-points">
-                <li><span>①</span> 在「采集动作」点按钮 → 任务在后台自动跑</li>
-                <li><span>②</span> 在「任务中心」看进度和日志，绿色就是成功</li>
-                <li><span>③</span> 数据自动写进飞书表，主表就是最终交付</li>
+                <li><span>01</span><div><strong>选择动作</strong><small>按日常、周度或月度筛选</small></div></li>
+                <li><span>02</span><div><strong>确认参数</strong><small>不确定时先使用预览模式</small></div></li>
+                <li><span>03</span><div><strong>跟进任务</strong><small>实时查看状态与日志</small></div></li>
               </ul>
             </section>
 
-            <section class="panel">
+            <nav class="guide-index" aria-label="指南目录">
+              <a href="#guideDaily"><span>01</span>日常流程</a>
+              <a href="#guideAi"><span>02</span>AI 助手</a>
+              <a href="#guideStatus"><span>03</span>任务状态</a>
+              <a href="#guideFaq"><span>04</span>问题排查</a>
+            </nav>
+
+            <section class="panel guide-section" id="guideDaily">
               <div class="section-head"><div><h2>日常怎么操作（照着做）</h2><p>每次出日报，大致就这几步。不确定就先勾「只预览不写入」。</p></div></div>
               <ol class="guide-steps">
                 <li>
-                  <h4>第 0 步 · 同步客户源表</h4>
+                  <span class="guide-step-no">01</span><div><h4>同步客户源表</h4>
                   <p>去「采集动作」点 <b>同步客户源表到总表</b>。两个链接一般已经填好，直接「加入队列」即可，它会把客户填的数据灌进我们的总表。<i>不确定时先勾「只预览不写入」看一眼。</i></p>
+                  </div>
                 </li>
                 <li>
-                  <h4>第 1 步 · 跑三条采集线</h4>
+                  <span class="guide-step-no">02</span><div><h4>运行三条采集线</h4>
                   <p>三条线<b>互不影响、可以一个接一个点</b>：<br>· <b>千川</b>：先「千川采集预定单」→ 再「确认写入细分表」。<br>· <b>星图</b>：点「星图达人自然数据」，它会自动按主表达人去采。<br>· <b>云图</b>：「云图建结案报告」（内服另点「云图建内服报告」）→ 等后台算完（人工去云图看一眼）→「云图采集全部数据」→ 需要人群再「云图搭建 A3 人群」。</p>
+                  </div>
                 </li>
                 <li>
-                  <h4>第 2 步 · 写回主表数据</h4>
+                  <span class="guide-step-no">03</span><div><h4>写回主表数据</h4>
                   <p>三条线都跑完后，点 <b>写回主表数据</b>，把数据表的结果按达人回填进主表「种草 DY日报」的取数列；主表其余指标是表里公式自动算的，不用管。<i>不确定先勾「只预览不写入」。</i></p>
+                  </div>
                 </li>
                 <li>
-                  <h4>第 3 步 · 检查并交付</h4>
+                  <span class="guide-step-no is-done">04</span><div><h4>检查并交付</h4>
                   <p>打开飞书主表「种草 DY日报」，看一眼指标都出来了、没有明显空缺，确认无误后就是最终结果，可直接交付客户。</p>
+                  </div>
                 </li>
               </ol>
             </section>
 
-            <section class="panel">
-              <div class="section-head"><div><h2>AI 助手怎么用</h2><p>右下角「AI 助手」接的是本机 Ollama，不走网上大模型。</p></div></div>
+            <section class="panel guide-section" id="guideAi">
+              <div class="section-head"><div><h2>AI 助手怎么用</h2><p>右下角「AI 助手」接的是本机 Ollama，不走网上大模型；可在 GLM-4 和 Qwen 3.5 间切换。</p></div></div>
               <div class="guide-status">
                 <div class="gs gs-run"><span class="badge run"><span class="pulse-dot"></span>查进度</span><p>可以问「现在什么进度」「有没有排队」「最近失败的是哪个」。它会读取当前任务队列和最近任务状态。</p></div>
                 <div class="gs gs-ok"><span class="badge ok">问操作</span><p>可以问「周报怎么跑」「写回主表会不会覆盖」「千川先点哪个」。它会按本系统的动作说明回答。</p></div>
                 <div class="gs gs-bad"><span class="badge wait">跑任务</span><p>可以说「帮我跑星图 6/21」「云图采集到 6/21」。AI 只会打开确认框并预填参数，真正入队仍要你点击确认。</p></div>
               </div>
-              <p class="guide-tip">提示：网页助手默认会尽量短回答，不需要手动输入 <code>no_think</code>。问「你是什么模型」时，它会显示当前连接的本机 Ollama 模型。</p>
+              <p class="guide-tip">提示：它现在也是通用助手，可以直接问工作、写作、学习和日常问题；涉及日报系统时会读取任务上下文。无需手动输入 <code>no_think</code>。</p>
             </section>
 
-            <section class="panel">
+            <section class="panel guide-section" id="guideStatus">
               <div class="section-head"><div><h2>怎么知道跑成功了？</h2><p>所有任务都在「任务中心」里。</p></div></div>
               <div class="guide-status">
                 <div class="gs gs-ok"><span class="badge ok">成功</span><p>绿色对勾＝跑完了，数据已写进飞书表。</p></div>
@@ -376,7 +519,7 @@
               <p class="guide-tip">💡 想跑完后有提醒？点右上角「开启通知」，完成会响铃＋桌面通知。按 <kbd>Ctrl</kbd>+<kbd>K</kbd> 可快速搜索动作直接运行。</p>
             </section>
 
-            <section class="panel">
+            <section class="panel guide-section" id="guideFaq">
               <div class="section-head"><div><h2>遇到问题怎么办</h2><p>最常见的几种情况。</p></div></div>
               <div class="guide-faq">
                 <details><summary>弹出浏览器要我登录 / 出现验证码、滑块</summary><p>登录态过期了。<b>在弹出的浏览器里手动登录或过一下验证码</b>，脚本会自动继续并记住登录态，下次就不用再登。看「登录状态」页可以检查哪个平台的登录文件还在。</p></details>
@@ -426,21 +569,27 @@
     </div>
 
     <button id="aiToggle" class="ai-toggle" type="button" title="打开 AI 助手">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.7 4.8L18.5 9l-4.8 1.7L12 15.5l-1.7-4.8L5.5 9l4.8-1.2L12 3z"/><path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14z"/><path d="M5 14l.8 2.2L8 17l-2.2.8L5 20l-.8-2.2L2 17l2.2-.8L5 14z"/></svg>
-      AI 助手
+      <span class="ai-mascot" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M16 4v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="#ffd166"/><path d="M7 13c0-3.3 2.7-6 6-6h6c3.3 0 6 2.7 6 6v7c0 3.3-2.7 6-6 6h-6c-3.3 0-6-2.7-6-6v-7z" fill="currentColor"/><rect x="9.5" y="11" width="13" height="11" rx="4" fill="white"/><circle cx="13.5" cy="16" r="1.5" fill="#315bd6"/><circle cx="18.5" cy="16" r="1.5" fill="#315bd6"/><path d="M13.5 19c1.5 1.2 3.5 1.2 5 0" stroke="#315bd6" stroke-width="1.5" stroke-linecap="round"/><circle cx="10.8" cy="19" r="1.2" fill="#ff9db0"/><circle cx="21.2" cy="19" r="1.2" fill="#ff9db0"/></svg></span>
+      <span>AI 小助手</span>
     </button>
 
     <section id="aiPanel" class="ai-panel hidden" aria-label="AI 助手">
       <div class="ai-head">
-        <div>
-          <p class="eyebrow">Local Ollama</p>
-          <h2>AI 运行助理</h2>
+        <span class="ai-avatar" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M16 4v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="3.5" r="2" fill="#ffd166"/><path d="M7 13c0-3.3 2.7-6 6-6h6c3.3 0 6 2.7 6 6v7c0 3.3-2.7 6-6 6h-6c-3.3 0-6-2.7-6-6v-7z" fill="currentColor"/><rect x="9.5" y="11" width="13" height="11" rx="4" fill="white"/><circle cx="13.5" cy="16" r="1.5" fill="#315bd6"/><circle cx="18.5" cy="16" r="1.5" fill="#315bd6"/><path d="M13.5 19c1.5 1.2 3.5 1.2 5 0" stroke="#315bd6" stroke-width="1.5" stroke-linecap="round"/><circle cx="10.8" cy="19" r="1.2" fill="#ff9db0"/><circle cx="21.2" cy="19" r="1.2" fill="#ff9db0"/></svg></span>
+        <div class="ai-head-copy">
+          <p class="eyebrow">LOCAL AI</p>
+          <h2>日报小助手</h2>
+          <small>在线为你查任务、找操作</small>
         </div>
         <button id="aiClose" class="icon-btn" type="button">关闭</button>
       </div>
+      <div class="ai-model-row">
+        <label for="aiModel">模型</label>
+        <select id="aiModel" aria-label="选择本地模型"><option value="">正在读取本地模型</option></select>
+      </div>
       <div id="aiMessages" class="ai-messages"></div>
       <form id="aiForm" class="ai-form">
-        <input id="aiInput" type="text" placeholder="问状态、诊断日志，或说：帮我跑星图 6/21" autocomplete="off" />
+        <input id="aiInput" type="text" placeholder="问我任何问题，也可以查任务或说：帮我跑星图 6/21" autocomplete="off" />
         <button id="aiSend" class="primary" type="submit">发送</button>
       </form>
     </section>
@@ -456,6 +605,6 @@
         <div id="loginErr" class="login-err"></div>
       </form>
     </div>
-    <script src="app.js?v=3"></script>
+    <script src="app.js?v=7"></script>
   </body>
 </html>
