@@ -1,3 +1,3 @@
 window.APP_CONFIG = {
-  API_BASE: 'https://scenario-aluminum-alt-inn.trycloudflare.com',
+  API_BASE: "https://lexmark-pottery-luck-spouse.trycloudflare.com",
 };
