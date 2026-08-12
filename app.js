@@ -403,6 +403,8 @@ async function api(path, options = {}) {
   const { headers: optHeaders, ...rest } = options;
   const res = await fetch(_apiBase() + path, {
     ...rest,
+    // GitHub Pages 通过公网隧道访问时，任务列表必须绕过浏览器/CDN 缓存。
+    cache: "no-store",
     headers: _authHeaders(optHeaders),
   });
   if (res.status === 401) {
@@ -1669,6 +1671,9 @@ async function boot() {
       $("healthLine").textContent = `刷新失败：${err.message}`;
     }
   }, 3000);
+
+  // 从别的标签页切回控制台时，立即取一次最新任务，不必等下一轮轮询。
+  window.addEventListener("focus", () => refreshAll().catch(() => {}));
 }
 
 boot().catch((err) => {
