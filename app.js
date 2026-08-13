@@ -21,6 +21,8 @@ const state = {
   aiModels: [],
   logSearch: { term: "", hits: 0, idx: 0 },
   sheetUrl: "",
+  refreshInFlight: false,
+  refreshFailures: 0,
 };
 
 // 三条线各自的真实阶段：云图(建报告→采集)、星图(采集)、千川(采集→写入)
@@ -401,12 +403,30 @@ function _authHeaders(extra) {
 }
 async function api(path, options = {}) {
   const { headers: optHeaders, ...rest } = options;
-  const res = await fetch(_apiBase() + path, {
-    ...rest,
-    // GitHub Pages 通过公网隧道访问时，任务列表必须绕过浏览器/CDN 缓存。
-    cache: "no-store",
-    headers: _authHeaders(optHeaders),
-  });
+  const method = String(rest.method || "GET").toUpperCase();
+  let requestPath = path;
+  let timeoutId = null;
+  let controller = null;
+  if (method === "GET") {
+    requestPath += `${requestPath.includes("?") ? "&" : "?"}_ts=${Date.now()}`;
+    controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), 12000);
+  }
+  let res;
+  try {
+    res = await fetch(_apiBase() + requestPath, {
+      ...rest,
+      // GitHub Pages 通过公网隧道访问时，任务列表必须绕过浏览器/CDN 缓存。
+      cache: "no-store",
+      headers: _authHeaders(optHeaders),
+      ...(controller ? { signal: controller.signal } : {}),
+    });
+  } catch (err) {
+    if (err && err.name === "AbortError") throw new Error("请求超时，正在自动重试");
+    throw err;
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
   if (res.status === 401) {
     showLogin();
     throw new Error("需要登录");
@@ -1479,6 +1499,37 @@ async function refreshAll() {
   }
 }
 
+function liveRefreshDelay() {
+  if (document.hidden) return 15000;
+  const active = state.jobs.some((job) => job.status === "running" || job.status === "queued");
+  return state.view === "jobs" || active ? 2000 : 5000;
+}
+
+function scheduleLiveRefresh(delay = liveRefreshDelay()) {
+  if (state.refreshTimer) clearTimeout(state.refreshTimer);
+  state.refreshTimer = setTimeout(runLiveRefresh, delay);
+}
+
+async function runLiveRefresh() {
+  if (state.refreshInFlight) {
+    scheduleLiveRefresh(1000);
+    return;
+  }
+  state.refreshInFlight = true;
+  try {
+    await Promise.all([loadHealth(), loadJobs()]);
+    state.refreshFailures = 0;
+  } catch (err) {
+    state.refreshFailures += 1;
+    const healthLine = $("healthLine");
+    if (healthLine) healthLine.textContent = `实时刷新暂时断开，正在重试：${err.message}`;
+  } finally {
+    state.refreshInFlight = false;
+    const backoff = state.refreshFailures ? Math.min(15000, 2000 * state.refreshFailures) : liveRefreshDelay();
+    scheduleLiveRefresh(backoff);
+  }
+}
+
 function bindEvents() {
   $("refreshBtn").addEventListener("click", refreshAll);
   $("clearHistoryBtn").addEventListener("click", clearHistory);
@@ -1663,17 +1714,15 @@ async function boot() {
   }
   setView(saved);
   await refreshAll();
-  state.refreshTimer = setInterval(async () => {
-    try {
-      await loadHealth();
-      await loadJobs();
-    } catch (err) {
-      $("healthLine").textContent = `刷新失败：${err.message}`;
-    }
-  }, 3000);
+  scheduleLiveRefresh(2000);
 
   // 从别的标签页切回控制台时，立即取一次最新任务，不必等下一轮轮询。
-  window.addEventListener("focus", () => refreshAll().catch(() => {}));
+  const refreshNow = () => {
+    if (document.hidden || state.refreshInFlight) return;
+    scheduleLiveRefresh(0);
+  };
+  window.addEventListener("focus", refreshNow);
+  document.addEventListener("visibilitychange", refreshNow);
 }
 
 boot().catch((err) => {
