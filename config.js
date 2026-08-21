@@ -1,3 +1,3 @@
 window.APP_CONFIG = {
-  API_BASE: "https://specialty-than-labs-chronicle.trycloudflare.com",
+  API_BASE: "https://italic-brakes-entries-brands.trycloudflare.com",
 };
