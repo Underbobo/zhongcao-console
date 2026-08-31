@@ -1,3 +1,3 @@
 window.APP_CONFIG = {
-  API_BASE: "https://walking-princeton-metallica-executive.trycloudflare.com",
+  API_BASE: "https://res-transactions-texts-bishop.trycloudflare.com",
 };
