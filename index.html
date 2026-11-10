@@ -22,18 +22,35 @@ button{padding:10px 22px;border:1px solid #b8c9e7;border-radius:8px;background:w
 const frame=document.getElementById('console');
 const loading=document.getElementById('loading');
 const message=document.getElementById('message');
+const source='https://raw.githubusercontent.com/Underbobo/zhongcao-console/main/index.html';
 let timer;
-function connect(){
+let attempt=0;
+async function latestTunnel(){
+  // Read the current source even when GitHub Pages is still serving an older build.
+  try {
+    const response=await fetch(source+'?t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(6000)});
+    if(response.ok){
+      const html=await response.text();
+      const current=html.match(/window\.CONSOLE_TUNNEL\s*=\s*"(https:\/\/[a-z0-9-]+\.trycloudflare\.com)"\s*;/);
+      if(current) return current[1];
+    }
+  } catch {}
+  return window.CONSOLE_TUNNEL;
+}
+async function connect(){
+  const current=++attempt;
   loading.style.display='grid';
   message.textContent='继续使用原来的登录密码。';
   clearTimeout(timer);
-  frame.src=window.CONSOLE_TUNNEL+location.search+location.hash;
-  frame.hidden=false;
   timer=setTimeout(()=>{message.textContent='连接时间较长。请确认运行控制台的电脑已开机，或点击重新连接。';},20000);
+  const tunnel=await latestTunnel();
+  if(current!==attempt) return;
+  frame.src=tunnel+location.search+location.hash;
+  frame.hidden=false;
 }
 frame.addEventListener('load',()=>{clearTimeout(timer);loading.style.display='none';});
-document.getElementById('retry').addEventListener('click',()=>location.reload());
-window.addEventListener('hashchange',()=>{frame.src=window.CONSOLE_TUNNEL+location.search+location.hash;});
+document.getElementById('retry').addEventListener('click',connect);
+window.addEventListener('hashchange',connect);
 connect();
 </script>
 </body>
